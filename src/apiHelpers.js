@@ -1,11 +1,13 @@
-import request from "request";
+// import request from "request";
+const request = require('request')
+const dotenv = require('dotenv').config()
 const createTrackQueryConfig = track => ({
   uri: "https://ws.audioscrobbler.com/2.0/",
   qs: {
     method: "track.search",
     track,
     api_key: process.env.lastFM_API_key,
-    format: "json"
+    format: 'json'
   }
 });
 
@@ -16,11 +18,11 @@ const createapiSeedsQueryConfig = ({ name, artist }) => ({
   }
 });
 
-export const apiSeeds = {
-  lyricQuery: ({ name, artist }) =>
+exports.apiSeeds = {
+  lyricQuery: async ({ name, artist }) =>
     request(createapiSeedsQueryConfig({ name, artist }))
 };
 
-export const lastFM = {
-  trackQuery: track => request(createTrackQueryConfig(track))
+exports.lastFM = {
+  trackQuery: async track => request(createTrackQueryConfig(track))
 };

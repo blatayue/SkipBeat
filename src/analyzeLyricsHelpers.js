@@ -3,8 +3,8 @@
 // Sort to assign colors
 // map over lyrics to generate x, y, z (color)
 
-import R from "ramda";
-import { apiSeeds, lastFM } from "./apiHelpers.js";
+const R = require("ramda");
+const helpers = require("./apiHelpers.js");
 const layoutOptss = ({ title, id }) => ({
   showlegend: false,
   fileopt: "overwrite",
@@ -28,7 +28,7 @@ const reduceLyrics = lyrics =>
       countedLyrics[word]
         ? { ...countedLyrics, word: countedLyrics[word]++ }
         : { ...countedLyrics, word: 1 },
-    {} //accumulator init - formatting here is strange
+    {}
   );
 
 const lyricsToArr = countedLyrics =>
@@ -47,9 +47,9 @@ const assignColors = countedLyrics => {
  * @returns {apiSeedsFormat}
  */
 const getLastFM = async track =>
-  lastFM
-    .trackQuery(track) // full response
-    .then(R.path([results, track, 0])); // first track
+  helpers.lastFM
+    .trackQuery(track).then(track => track.json())
+    // .then(R.path(["results", "track", 0])); // first track
 
 /**
  * @typedef {String} lyrics
@@ -57,7 +57,22 @@ const getLastFM = async track =>
  * @returns {lyrics}
  */
 const getLyrics = async track =>
-  apiSeeds.lyricQuery(track).then(R.path(["result", "track", "text"]));
+  helpers.apiSeeds.lyricQuery(track).then(R.path(["result", "track", "text"]))
 
+const splitLyrics = lyrics => lyrics.split(" ")
 // replaces newlines and parentheses with spaces and nothing respectively
-const parseLyrics = lyrics => lyrics.replace("\n", " ").replace(/[\(\)]/g, "");
+const parseLyrics = lyrics => 
+lyrics
+.replace("\n", " ") // newlines aren't actually parsed for you, not needed though
+.replace(/\(.*\)/g, ""); // same with artists parts, nbd yet
+
+const analyze = query => 
+  getLastFM(query)
+  .then(console.log)
+  // .then(getLastFM)
+  // .then(splitLyrics)
+  // .then(reduceLyrics)
+  // .then(lyricsToArr)
+  // .then(console.log)
+
+analyze('Chelsea Dagger')

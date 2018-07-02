@@ -2,34 +2,8 @@
 // Reduce to get count,
 // Sort to assign colors
 // map over lyrics to generate x, y, z (color)
-
-const R = require("ramda");
-const helpers = require("./apiHelpers.js");
-const layoutOptss = ({ title, id }) => ({
-  showlegend: false,
-  fileopt: "overwrite",
-  title,
-  filename: `${title}-${id}`
-});
-
-/**
- * @typedef
- */
-
-const reduceLyrics = lyrics =>
-  /**
-   * @param {String} word
-   * @typedef countedLyrics
-   * @type {object}
-   * @prop {String}
-   */
-  lyrics.reduce(
-    (countedLyrics, word) =>
-      countedLyrics[word]
-        ? { ...countedLyrics, word: countedLyrics[word]++ }
-        : { ...countedLyrics, word: 1 },
-    {}
-  );
+const R = require('ramda');
+const helpers = require('./apiHelpers.js');
 
 const lyricsToArr = countedLyrics =>
   R.mapObjIndexed(count, word => [count, word])(countedLyrics);
@@ -48,8 +22,8 @@ const assignColors = countedLyrics => {
  */
 const getLastFM = async track =>
   helpers.lastFM
-    .trackQuery(track).then(track => track.json())
-    // .then(R.path(["results", "track", 0])); // first track
+    .trackQuery(track)
+    .then(R.path(['data', 'results', 'trackmatches', 'track', 0])); // first track
 
 /**
  * @typedef {String} lyrics
@@ -57,22 +31,33 @@ const getLastFM = async track =>
  * @returns {lyrics}
  */
 const getLyrics = async track =>
-  helpers.apiSeeds.lyricQuery(track).then(R.path(["result", "track", "text"]))
+  helpers.apiSeeds.lyricQuery(track)
+  .then(R.path(['data', 'result', 'track', 'text']))
 
-const splitLyrics = lyrics => lyrics.split(" ")
-// replaces newlines and parentheses with spaces and nothing respectively
 const parseLyrics = lyrics => 
-lyrics
-.replace("\n", " ") // newlines aren't actually parsed for you, not needed though
-.replace(/\(.*\)/g, ""); // same with artists parts, nbd yet
+  lyrics
+    .replace(/\\n/g, '')
+    .replace(/\n/g, '')
+    .replace(/[!"#$%&()*+,\-./:;<=>?@[\]\^_`{|}~]/g, '') // remove all punctuation except single quotes for contractions
+    // Don't forget to parse on graph making
+    .split(' ')
 
+const makeFrequency = lyrics => 
+  lyrics.reduce((freq, word) => 
+    freq.hasOwnProperty(word) 
+      ? {...freq, [word]: freq[word]+= 1} 
+      : {...freq, [word]: 1}, 
+    {})
+
+/** @typedef {String} word */
+/** @typedef {Object} frequency
+ *  @prop {Number} word 
+ */
 const analyze = query => 
   getLastFM(query)
+  .then(getLyrics) 
+  .then(parseLyrics) /** @type {word[]}*/
+  .then(makeFrequency) /** @type {frequency} */
   .then(console.log)
-  // .then(getLastFM)
-  // .then(splitLyrics)
-  // .then(reduceLyrics)
-  // .then(lyricsToArr)
-  // .then(console.log)
 
-analyze('Chelsea Dagger')
+analyze('Chelsea Dagger').catch(console.log)

@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@blatayue/color-thief": "^2.0.3",
+    "axios": "^0.18.0",
     "dotenv": "^6.0.0",
-    "image-palette": "^1.0.3",
+    "querystring": "^0.2.0",
     "ramda": "^0.25.0",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
-    "react-scripts": "1.1.4",
-    "request": "^2.87.0"
+    "react-image-palette": "^0.2.4",
+    "react-scripts": "1.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
